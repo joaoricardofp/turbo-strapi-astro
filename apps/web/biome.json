@@ -1,0 +1,17 @@
+{
+  "extends": ["@repo/biome-config/base.json"],
+  "files": {
+    "include": ["src/**/*", "*.config.*"],
+    "ignore": ["dist/**", ".astro/**", "node_modules/**"]
+  },
+  "linter": {
+    "rules": {
+      "correctness": {
+        "noUnusedImports": "error"
+      },
+      "style": {
+        "useImportType": "error"
+      }
+    }
+  }
+}
