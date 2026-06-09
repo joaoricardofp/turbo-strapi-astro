@@ -1,5 +1,11 @@
 ---
-import { Button } from "@/components/ui/button";
+import fetchApi from "@/lib/strapi";
+import type Hero from "@/interfaces/hero";
+
+const hero = await fetchApi<Hero[]>({
+	endpoint: "hero",
+	wrappedByKey: "data"
+});
 ---
 
 <html lang="en">
@@ -13,7 +19,16 @@ import { Button } from "@/components/ui/button";
 		<title>Astro</title>
 	</head>
 	<body>
-		<h1 class="text-4xl font-bold">Astro</h1>
-		<Button>Button</Button>
+		<div class="min-h-screen flex items-center justify-center bg-neutral-200 px-6">
+			<section class="flex flex-col items-center text-center gap-5 max-w-xl w-full">
+				<h1 class="text-4xl font-bold leading-tight tracking-tight">
+					{hero.title.split(' ').map((word, i) => (
+						<span class={i % 3 === 2 ? 'text-violet-500' : ''}>{word} </span>
+					))}
+				</h1>
+				<p class="text-foreground text-sm leading-relaxed opacity-85">{hero.subtitle}</p>
+				<a href={hero.ctaUrl} class="mt-2 inline-flex items-center gap-2 px-6 py-2.5 bg-violet-500 text-neutral-200 font-bold text-sm tracking-wide rounded-sm hover:bg-foreground transition-colors" target="_blank">{hero.ctaLabel}</a>
+			</section>
+		</div>
 	</body>
 </html>
