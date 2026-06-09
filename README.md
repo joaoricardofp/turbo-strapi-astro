@@ -7,153 +7,163 @@ This Turborepo starter is maintained by the Turborepo core team.
 Run the following command:
 
 ```sh
-npx create-turbo@latest
+pnpx create-turbo@latest
 ```
 
-## What's inside?
+## What's inside?# astro-strapi-starter
 
-This Turborepo includes the following packages/apps:
+A monorepo starter for building static websites with a headless CMS. Uses Astro for the frontend and Strapi as the content management system, orchestrated with Turborepo.
 
-### Apps and Packages
+---
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## Stack
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+| Layer | Technology |
+|---|---|
+| Frontend | Astro 6 + React 19 |
+| CMS | Strapi 5 |
+| Monorepo | Turborepo + pnpm workspaces |
+| Styling | Tailwind CSS v4 |
+| Components | shadcn/ui |
+| Database | PostgreSQL |
 
-### Utilities
+---
 
-This Turborepo has some additional tools already setup for you:
+## Project structure
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```
+.
+├── apps/
+│   ├── web/          # Astro frontend
+│   └── cms/          # Strapi CMS
+├── packages/
+│   ├── biome-config/
+├── turbo.json
+├── pnpm-workspace.yaml
+└── package.json
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+## Requirements
+
+- Node.js >= 18
+- pnpm >= 9
+- PostgreSQL instance (local or remote)
+
+---
+
+## Getting started
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/joaoricardofp/turbo-strapi-astro.git
+cd turbo-strapi-astro
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+**2. Install dependencies**
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+```bash
+pnpm install
 ```
 
-Without global `turbo`:
+**3. Set up environment variables**
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+cp apps/cms/.env.example apps/cms/.env
 ```
 
-### Develop
+Fill in the values in `apps/cms/.env`. See the environment variables section below.
 
-To develop all apps and packages, run the following command:
+**4. Start the development environment**
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
+```bash
+pnpm dev
 ```
 
-Without global `turbo`, use your package manager:
+This starts both apps in parallel via Turborepo:
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+- Astro at `http://localhost:4321`
+- Strapi at `http://localhost:1337`
+
+---
+
+## Environment variables
+
+All required variables are documented in `apps/cms/.env.example`.
+
+```env
+# Server
+HOST=0.0.0.0
+PORT=1337
+
+# Security (generate random values for production)
+APP_KEYS=
+API_TOKEN_SALT=
+ADMIN_JWT_SECRET=
+TRANSFER_TOKEN_SALT=
+JWT_SECRET=
+
+# Database
+DATABASE_CLIENT=postgres
+DATABASE_HOST=
+DATABASE_PORT=5432
+DATABASE_NAME=
+DATABASE_USERNAME=
+DATABASE_PASSWORD=
+DATABASE_SSL=false
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The Astro app requires a `.env` file at `apps/web/.env`:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
+```env
+STRAPI_URL=http://localhost:1337
 ```
 
-Without global `turbo`:
+> Never commit real `.env` files. They are already listed in `.gitignore`.
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+---
+
+## Strapi setup
+
+After starting the CMS for the first time:
+
+1. Create your admin account at `http://localhost:1337/admin`
+2. Define your content types under **Content-Type Builder**
+3. Go to **Settings → Users & Permissions → Roles → Public** and enable `find` for each content type the frontend needs to access
+
+---
+
+## Fetching content in Astro
+
+A typed fetch helper is available at `apps/web/src/lib/strapi.ts`:
+
+```typescript
+import fetchApi from '@/lib/strapi'
+
+const data = await fetchApi<YourType>({
+  endpoint: 'your-content-type',
+  wrappedByKey: 'data',
+})
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Available scripts
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start all apps in development mode |
+| `pnpm build` | Build all apps |
+| `pnpm lint` | Lint all apps |
+| `pnpm check-types` | TypeScript type checking |
+| `pnpm format` | Format with Prettier |
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
 
-```sh
-cd my-turborepo
-turbo login
-```
 
-Without global `turbo`, use your package manager:
+## License
 
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+MIT
